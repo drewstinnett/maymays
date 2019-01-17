@@ -4,3 +4,4 @@ django-filter>=2
 Faker
 factory_boy
 coverage
+django_extensions
