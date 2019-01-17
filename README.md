@@ -6,7 +6,7 @@ Fun project to try and make it easy to meme
 
 * GraphQL API at `/graphql`
 
-* Geneate AdHoc Mems by going to `/adhoc_mems/<meme_slug>/<top_text>/</bottom_text>`
+* Geneate simple AdHoc Mems by going to `/adhoc_mems/<meme_slug>/<top_text>/<bottom_text>`
 
 * Automatically pull in top meme templates from [imgflip](https://api.imgflip.com/get_memes)
 
