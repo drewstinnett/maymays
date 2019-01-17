@@ -1,0 +1,6 @@
+Pillow
+graphene-django>=2.0
+django-filter>=2
+Faker
+factory_boy
+coverage
