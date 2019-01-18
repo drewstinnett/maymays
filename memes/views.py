@@ -38,7 +38,7 @@ def adhoc_meme(request, slug, top, bottom):
 
         text_draw = Drawing()
 
-        text_draw.font = "fonts/impact.ttf"
+        text_draw.font = "fonts/Anton-Regular.ttf"
         text_draw.font_size = 70
         text_draw.text_alignment = "center"
         text_draw.stroke_color = Color("black")

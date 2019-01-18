@@ -1,6 +1,6 @@
 [![codecov](https://codecov.io/gh/drewstinnett/maymays/branch/master/graph/badge.svg)](https://codecov.io/gh/drewstinnett/maymays)
-
 [![Build Status](https://travis-ci.org/drewstinnett/maymays.svg?branch=master)](https://travis-ci.org/drewstinnett/maymays)
+[![Say Thanks!](https://img.shields.io/badge/Say%20Thanks-!-1EAEDB.svg)](https://saythanks.io/to/drewstinnett)
 
 # MayMays
 
