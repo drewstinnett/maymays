@@ -1,5 +1,7 @@
 [![codecov](https://codecov.io/gh/drewstinnett/maymays/branch/master/graph/badge.svg)](https://codecov.io/gh/drewstinnett/maymays)
 
+[![Build Status](https://travis-ci.org/drewstinnett/maymays.svg?branch=master)](https://travis-ci.org/drewstinnett/maymays)
+
 # MayMays
 
 Fun project to try and make it easy to meme
