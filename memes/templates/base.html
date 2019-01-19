@@ -1,0 +1,16 @@
+<body>
+{% load bootstrap4 %}
+
+{# Load CSS and JavaScript #}
+{% bootstrap_css %}
+{% bootstrap_javascript jquery='full' %}
+
+{% include 'nav.html' %}
+
+    <div class="content container">
+{# Display django.contrib.messages as Bootstrap alerts #}
+{% bootstrap_messages %}
+            {% block content %}
+            {% endblock %}
+    </div>
+</body>

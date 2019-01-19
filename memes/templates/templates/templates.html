@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load thumbnail %}
+{% load bootstrap_pagination %}
+
+
+{% block content %}
+<div class="container" >
+
+    <div class="d-flex flex-wrap">
+    {% for template in templates %}
+    <div class="col-md-4">
+    <div class="card mb-4 shadow-sm" style="width: 18rem;">
+      {% thumbnail template.image "200x200" crop="center" as im %}
+      <a href="/template/{{ template.slug }}">
+        <img class="card-img-top" src="{{ im.url }}" alt="Card image cap" width="{{ im.width }}" height="{{ im.height }}">
+      </a>
+      {% endthumbnail %}
+      <div class="card-body">
+        <h5 class="card-title">{{ template.name }}</h5>
+    <!--    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p> -->
+        <a href="{{ template.know_your_meme_url }}" class="btn btn-primary" target="_blank">Know Your Meme</a>
+    </div>
+    </div>
+    </div>
+    {% endfor %}
+    </div>
+    {% bootstrap_paginate templates %}
+</div>
+{% endblock %}
+
+{# Display a form #}
+
+{# Read the documentation for more information #}

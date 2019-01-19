@@ -4,7 +4,6 @@ from memes.seed.factories import TemplateFactory
 from memes.helpers import import_memes
 from django.core.files.base import ContentFile
 from io import BytesIO
-import sys
 import json
 from PIL import Image
 
@@ -16,20 +15,38 @@ def generate_image(width=500, height=500):
     return i
 
 
-# class TemplateTestCase(TestCase):
-#
-#   def setUp(self):
-#       Template.objects.create(name='Grumpy Cat')
+class ViewTemplatesTestCase(TestCase):
 
-#   def test_template_create(self):
-#       template1 = TemplateFactory()
+    def setUp(self):
+        self.c = Client()
+        self.meme_template = TemplateFactory()
+        fake_image = generate_image()
+        i_buffer = BytesIO()
+
+        fake_image.save(fp=i_buffer, format='JPEG')
+
+        self.meme_template.image.save(
+            'test.png', ContentFile(i_buffer.getvalue()))
+
+    def test_template_listing(self):
+        response = self.c.get('/templates/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_template_details(self):
+        response = self.c.get('/template/%s' % self.meme_template.slug)
+        self.assertEqual(response.status_code, 200)
+
 
 class ImportMemesTestCase(TestCase):
     def setUp(self):
-        import_memes(silent=True)
+        import_memes(silent=True, limit=15)
 
     def test_memes_imported(self):
         self.assertGreater(len(Template.objects.all()), 5)
+
+    def test_kym_link(self):
+        template = Template.objects.all()[0]
+        self.assertIn('knowyourmeme', template.know_your_meme_url)
 
 
 class AdHocTestCase(TestCase):

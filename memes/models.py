@@ -15,6 +15,10 @@ class Template(models.Model):
     slug = models.SlugField()
     image = models.ImageField(upload_to='templates', blank=False, null=False)
 
+    @property
+    def know_your_meme_url(self):
+        return "https://knowyourmeme.com/memes/%s" % self.slug
+
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         super(Template, self).save(*args, **kwargs)
@@ -23,7 +27,7 @@ class Template(models.Model):
         r = requests.get(url)
         content_type = r.headers['content-type']
         ext = mimetypes.guess_extension(content_type)
-        self.image.save('%s%s' % (self.name, ext), ContentFile(r.content))
+        self.image.save('%s%s' % (self.slug, ext), ContentFile(r.content))
 
     def __str__(self):  # pragma: no cover
         return self.name

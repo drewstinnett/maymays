@@ -7,3 +7,6 @@ coverage
 django_extensions
 requests
 Wand
+django-bootstrap4
+sorl-thumbnail
+django-bootstrap-pagination

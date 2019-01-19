@@ -1,4 +1,6 @@
 from django.http import HttpResponse
+from django.core.paginator import Paginator
+from django.template import loader
 from memes.models import Template
 from django.http import Http404
 
@@ -11,6 +13,27 @@ from wand.image import Image
 from wand.color import Color
 
 MARGINS = [50, 130, 200, 270, 340]
+
+
+def templates(request):
+    all_templates = Template.objects.all()
+    paginator = Paginator(all_templates, 24)
+    page = request.GET.get('page')
+    meme_templates = paginator.get_page(page)
+    template = loader.get_template('templates/templates.html')
+    context = {
+        'templates': meme_templates,
+    }
+    return HttpResponse(template.render(context, request))
+
+
+def template_details(request, slug):
+    meme_template = Template.objects.get(slug=slug)
+    template = loader.get_template('templates/details.html')
+    context = {
+        'template': meme_template
+    }
+    return HttpResponse(template.render(context, request))
 
 
 def adhoc_meme(request, slug, top, bottom):
