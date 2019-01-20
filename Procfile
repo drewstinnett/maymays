@@ -1,1 +1,1 @@
-web: gunicorn maymays/wsgi.py
+web: gunicorn maymays.wsgi
