@@ -11,3 +11,4 @@ django-bootstrap4
 sorl-thumbnail
 django-bootstrap-pagination
 django-heroku
+gunicorn
