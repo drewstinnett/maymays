@@ -4,6 +4,22 @@ import mimetypes
 import requests
 from django.core.files.base import ContentFile
 from django.template.defaultfilters import slugify
+from django.core.exceptions import ValidationError
+
+
+class OGMeme(models.Model):
+    """Original Gangsta' style meme.  Traditional top/bottom text on an image
+    """
+    top = models.CharField('Top Text', max_length=255, blank=True)
+    bottom = models.CharField('Bottom Text', max_length=255, blank=True)
+    template = models.ForeignKey('Template', on_delete=models.CASCADE)
+
+    def clean(self):
+        if not self.top and not self.bottom:
+            raise ValidationError('At least top or bottom text is required')
+
+    class Meta:
+        unique_together = ['top', 'bottom', 'template']
 
 
 class Template(models.Model):

@@ -5,7 +5,14 @@
 <div class="container" >
 
   <h2>{{ template.name }}</h2>
-  <img src="{{ template.image.url }}"/>
+  <div class="row">
+      <div class="col-7">
+          <img id='main_template' data-slug="{{ template.slug }}" class="img-fluid" src="{{ template.image.url }}"/>
+       </div>
+       <div class="col-3">
+           {% include "create_og.html" with form=og_form %}
+       </div>
+  </div>
 
 </div>
 {% endblock %}

@@ -2,6 +2,7 @@ from django.http import HttpResponse
 from django.core.paginator import Paginator
 from django.template import loader
 from memes.models import Template
+from memes.forms import OGMemeForm
 from django.http import Http404
 
 
@@ -21,6 +22,7 @@ def templates(request):
     page = request.GET.get('page')
     meme_templates = paginator.get_page(page)
     template = loader.get_template('templates/templates.html')
+
     context = {
         'templates': meme_templates,
     }
@@ -30,7 +32,9 @@ def templates(request):
 def template_details(request, slug):
     meme_template = Template.objects.get(slug=slug)
     template = loader.get_template('templates/details.html')
+    og_form = OGMemeForm()
     context = {
+        'og_form': og_form,
         'template': meme_template
     }
     return HttpResponse(template.render(context, request))
@@ -53,11 +57,21 @@ def adhoc_meme(request, slug, top, bottom):
                 ) * 1024.0)
             )
 
-        upper_text = "\n".join(wrap(
-            top, get_warp_length(int(wand_t.width)))).upper()
-        lower_text = "\n".join(wrap(
-            bottom, get_warp_length(int(wand_t.width)))).upper()
-        lower_margin = MARGINS[lower_text.count("\n")]
+        use_top = True
+        use_bottom = True
+
+        if top == ' ':
+            use_top = False
+        if bottom == ' ':
+            use_bottom = False
+
+        if use_top:
+            upper_text = "\n".join(wrap(
+                top, get_warp_length(int(wand_t.width)))).upper()
+        if use_bottom:
+            lower_text = "\n".join(wrap(
+                bottom, get_warp_length(int(wand_t.width)))).upper()
+            lower_margin = MARGINS[lower_text.count("\n")]
 
         text_draw = Drawing()
 
@@ -67,10 +81,14 @@ def adhoc_meme(request, slug, top, bottom):
         text_draw.stroke_color = Color("black")
         text_draw.stroke_width = 3
         text_draw.fill_color = Color("white")
-        text_draw.text(int(wand_t.width / 2), 80, upper_text)
-        text_draw.text(
-            int(wand_t.width / 2), int(wand_t.height - lower_margin),
-            lower_text)
+
+        if use_top:
+            text_draw.text(int(wand_t.width / 2), 80, upper_text)
+
+        if use_bottom:
+            text_draw.text(
+                int(wand_t.width / 2), int(wand_t.height - lower_margin),
+                lower_text)
 
         text_draw(wand_t)
 

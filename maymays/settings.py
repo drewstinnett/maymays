@@ -32,7 +32,7 @@ SECRET_KEY = 'xd^##gu&b^m*g!-sylzk5h)xxw^+e%_58*tf8+se6u10vkfz4o'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', '.herokuapp.com']
+#ALLOWED_HOSTS = ['127.0.0.1', '.herokuapp.com']
 
 
 
@@ -52,8 +52,12 @@ INSTALLED_APPS = [
     'graphene_django',
     'sorl.thumbnail',
     'bootstrap_pagination',
+    'crispy_forms',
 
 ]
+
+CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
 
 GRAPHENE = {
     'MIDDLEWARE': [

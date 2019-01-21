@@ -1,9 +1,16 @@
+{% load staticfiles %}
+<head>
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
+</head>
 <body>
 {% load bootstrap4 %}
+
 
 {# Load CSS and JavaScript #}
 {% bootstrap_css %}
 {% bootstrap_javascript jquery='full' %}
+
+<script src='{% static "js/images.js" %}'></script>
 
 {% include 'nav.html' %}
 

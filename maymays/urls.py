@@ -24,7 +24,7 @@ from memes import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^graphql', GraphQLView.as_view(graphiql=True)),
-    path(r'adhoc_meme/<str:slug>/<str:top>/<str:bottom>/',
+    path(r'adhoc_meme/<str:slug>/<top>/<bottom>/',
          views.adhoc_meme),
     path(r'templates/', views.templates, name='templates'),
     path(r'template/<str:slug>', views.template_details,
