@@ -1,7 +1,8 @@
 from django.test import TestCase, Client
-from memes.models import Template
+from memes.models import Template, OGMeme
 from memes.seed.factories import TemplateFactory
 from memes.helpers import import_memes
+from memes.forms import OGMemeForm
 from django.core.files.base import ContentFile
 from io import BytesIO
 import json
@@ -13,6 +14,46 @@ def generate_image(width=500, height=500):
     color = (255, 0, 0)
     i = Image.new("RGB", size, color)
     return i
+
+
+class OGMemeFormTestCase(TestCase):
+
+    def setUp(self):
+        self.full_data = {'top': 'hi top', 'bottom': 'hi bottom'}
+        self.c = Client()
+
+        self.meme_template = TemplateFactory()
+        fake_image = generate_image()
+        i_buffer = BytesIO()
+
+        fake_image.save(fp=i_buffer, format='JPEG')
+
+        self.meme_template.image.save(
+            'test.png', ContentFile(i_buffer.getvalue()))
+
+    def test_add_meme(self):
+        meme_count = OGMeme.objects.count()
+        response = self.c.post('/template/%s' % self.meme_template.slug,
+                               self.full_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(OGMeme.objects.count(), meme_count+1)
+#       self.assertTrue(b'"error": false' in response.content)
+
+    def test_valid_meme(self):
+        form = OGMemeForm(data=self.full_data)
+        self.assertTrue(form.is_valid())
+
+    def test_invalid_meme(self):
+        form = OGMemeForm(data={'top': ' ', 'bottom': ' '})
+        self.assertFalse(form.is_valid())
+
+    def test_missing_bottom_meme(self):
+        form = OGMemeForm(data={'top': 'Toponly Test', 'bottom': ' '})
+        self.assertTrue(form.is_valid())
+
+    def test_missing_top_meme(self):
+        form = OGMemeForm(data={'top': ' ', 'bottom': 'Bottom only'})
+        self.assertTrue(form.is_valid())
 
 
 class ViewTemplatesTestCase(TestCase):

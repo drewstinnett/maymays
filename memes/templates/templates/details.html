@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
+{% load thumbnail %}
 
 
 {% block content %}
 <div class="container" >
 
-  <h2>{{ template.name }}</h2>
+  <h3>{{ template.name }}</h3>
   <div class="row">
       <div class="col-7">
           <img id='main_template' data-slug="{{ template.slug }}" class="img-fluid" src="{{ template.image.url }}"/>
@@ -12,6 +13,24 @@
        <div class="col-3">
            {% include "create_og.html" with form=og_form %}
        </div>
+  </div>
+  <div class="container" >
+    <div class="d-flex flex-wrap">
+
+    {% for meme in recent_memes %}
+    <div class="col-md-4">
+    {{ meme }}
+    <div class="card mb-4 shadow-sm" style="width: 18rem;">
+      {% thumbnail meme.image "200x200" crop="center" as im %}
+      <a href="/template/{{ meme.id }}">
+        <img class="card-img-top" src="{{ im.url }}" alt="Card image cap" width="{{ im.width }}" height="{{ im.height }}">
+      </a>
+      {% endthumbnail %}
+    </div>
+    </div>
+    {% endfor %}
+
+    </div>
   </div>
 
 </div>

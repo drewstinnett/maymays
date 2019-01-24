@@ -2,10 +2,6 @@ import requests
 from memes.models import Template
 
 
-def get_warp_length(width):
-    return int((33.0 / 1024.0) * (width + 0.0))
-
-
 def import_memes(silent=None, limit=None):
     memes = requests.get(
         'https://api.imgflip.com/get_memes').json()['data']['memes']

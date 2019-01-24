@@ -13,5 +13,5 @@ django-bootstrap-pagination
 django-heroku
 gunicorn
 dj-database-url
-whitenoise
 django-crispy-forms
+psycopg2-binary

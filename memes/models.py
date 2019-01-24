@@ -2,9 +2,16 @@ from django.db import models
 from django.contrib import admin
 import mimetypes
 import requests
-from django.core.files.base import ContentFile
+from django.core.files.base import ContentFile, File
 from django.template.defaultfilters import slugify
 from django.core.exceptions import ValidationError
+from io import BytesIO
+
+# Needed for Meme gen
+from textwrap import wrap
+from wand.drawing import Drawing
+from wand.image import Image
+from wand.color import Color
 
 
 class OGMeme(models.Model):
@@ -13,6 +20,27 @@ class OGMeme(models.Model):
     top = models.CharField('Top Text', max_length=255, blank=True)
     bottom = models.CharField('Bottom Text', max_length=255, blank=True)
     template = models.ForeignKey('Template', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='ogmeme', blank=False, null=False)
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
+
+    def __str__(self):  # pragma: no cover
+        return "%s %s|%s" % (self.template.slug, self.top, self.bottom)
+
+    def save(self, *args, **kwargs):
+        i_blob = self.template.make_og_meme(self.top, self.bottom).make_blob()
+        with BytesIO(i_blob) as stream:
+            django_file = File(stream)
+            self.image.save('%s.png' % self.template.slug, django_file,
+                            save=False)
+
+        super(OGMeme, self).save(*args, **kwargs)
+
+    def import_image_from_url(self, url):
+        r = requests.get(url)
+        content_type = r.headers['content-type']
+        ext = mimetypes.guess_extension(content_type)
+        self.image.save('%s%s' % (self.slug, ext), ContentFile(r.content))
 
     def clean(self):
         if not self.top and not self.bottom:
@@ -30,6 +58,8 @@ class Template(models.Model):
     name = models.CharField(max_length=200, unique=True)
     slug = models.SlugField()
     image = models.ImageField(upload_to='templates', blank=False, null=False)
+    created_date = models.DateTimeField(auto_now_add=True)
+    modified_date = models.DateTimeField(auto_now=True)
 
     @property
     def know_your_meme_url(self):
@@ -44,6 +74,65 @@ class Template(models.Model):
         content_type = r.headers['content-type']
         ext = mimetypes.guess_extension(content_type)
         self.image.save('%s%s' % (self.slug, ext), ContentFile(r.content))
+
+    def make_og_meme(self, top, bottom):
+        """Generate an OG Meme
+        """
+
+        wand_t = Image(blob=self.image.read())
+        MARGINS = [50, 130, 200, 270, 340]
+
+        # Set a minimum size
+        wand_t.resize(
+            1024,
+            int(
+                (
+                    (wand_t.height * 1.0) / (wand_t.width * 1.0)
+                ) * 1024.0)
+            )
+
+        use_top = True
+        use_bottom = True
+
+        if top == ' ':
+            use_top = False
+        if bottom == ' ':
+            use_bottom = False
+
+        if use_top:
+            upper_text = "\n".join(wrap(
+                top, self.get_warp_length(int(wand_t.width)))).upper()
+        if use_bottom:
+            lower_text = "\n".join(wrap(
+                bottom, self.get_warp_length(int(wand_t.width)))).upper()
+            lower_margin = MARGINS[lower_text.count("\n")]
+
+        text_draw = Drawing()
+
+        text_draw.font = "fonts/Anton-Regular.ttf"
+        text_draw.font_size = 70
+        text_draw.text_alignment = "center"
+        text_draw.stroke_color = Color("black")
+        text_draw.stroke_width = 3
+        text_draw.fill_color = Color("white")
+
+        if use_top:
+            text_draw.text(int(wand_t.width / 2), 80, upper_text)
+
+        if use_bottom:
+            text_draw.text(
+                int(wand_t.width / 2), int(wand_t.height - lower_margin),
+                lower_text)
+
+        text_draw(wand_t)
+
+        return(wand_t)
+
+    def get_warp_length(self, width):
+        return int((33.0 / 1024.0) * (width + 0.0))
+
+    class Meta:
+        ordering = ['name']
 
     def __str__(self):  # pragma: no cover
         return self.name

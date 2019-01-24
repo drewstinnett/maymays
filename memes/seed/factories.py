@@ -11,4 +11,3 @@ class TemplateFactory(factory.DjangoModelFactory):
         model = Template
 
     name = factory.Sequence(lambda n: '{0} {1}'.format(faker.name(), n))
-    print(name)

@@ -90,4 +90,5 @@ local_settings.py
 db.sqlite3
 static/assets/
 static/media/templates
+static/media/ogmeme
 static/media/cache
