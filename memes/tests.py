@@ -89,6 +89,11 @@ class AdHocTestCase(TestCase):
         response = self.c.get(path)
         self.assertEqual(response.status_code, 200)
 
+    def test_success_create_twit(self):
+        path = '/adhoc_twit/%s/blocktext' % self.meme_template.slug
+        response = self.c.get(path)
+        self.assertEqual(response.status_code, 200)
+
     def test_missing_create(self):
         path = '/adhoc_meme/NOTEXIST/top_text/bottom_text/'
         response = self.c.get(path)

@@ -10,6 +10,7 @@ from io import BytesIO
 from uuid import uuid4
 
 # Needed for Meme gen
+from PIL import Image as PILImage, ImageDraw, ImageFont
 from textwrap import wrap
 from wand.drawing import Drawing
 from wand.image import Image
@@ -85,7 +86,45 @@ class Template(models.Model):
 
     def get_absolute_url(self):
         return reverse('template_detail', args=[str(self.slug)])
-        # return "/template/%s" % self.slug
+
+    def make_twit(self, text, text_size=24, frame=10):
+        """Generate a twit
+
+        text_size: Font size for PIL
+        frame: Number of pixels for the frame aroun final image
+        """
+        # Get the template for late use
+        t = PILImage.open(self.image)
+
+        # Figue out caption txt
+        fnt = ImageFont.truetype('fonts/Metrophobic-Regular.ttf', text_size)
+        ascent, descent = fnt.getmetrics()
+        (width, baseline), (offset_x, offset_y) = fnt.font.getsize(text)
+        font_height = offset_y + (ascent - offset_y) + descent
+        text_pieces = wrap(text, self.image.width / 12)
+
+        # Create image for the caption
+        caption_height = (font_height * len(text_pieces)) + 10
+        caption_i = PILImage.new(
+            'RGB',
+            (self.image.width, caption_height),
+            color='white'
+        )
+        d = ImageDraw.Draw(caption_i)
+        wrapped_text = "\n".join(text_pieces)
+        d.text((10, 10), wrapped_text, fill='black', font=fnt)
+
+        # Generate image to retun
+        result = PILImage.new(
+            "RGBA",
+            (self.image.width + frame, (
+                caption_height + self.image.height + (int(frame / 2)))),
+            'white'
+        )
+        result.paste(caption_i, (int(frame / 2), 0))
+        result.paste(t, (int(frame / 2), caption_height))
+
+        return result
 
     def make_og_meme(self, top, bottom):
         """Generate an OG Meme
@@ -140,8 +179,8 @@ class Template(models.Model):
 
         return(wand_t)
 
-    def get_warp_length(self, width):
-        return int((33.0 / 1024.0) * (width + 0.0))
+    def get_warp_length(self, width, max_width=1024, padding=33):
+        return int((float(padding) / float(max_width)) * (width + 0.0))
 
     class Meta:
         ordering = ['name']

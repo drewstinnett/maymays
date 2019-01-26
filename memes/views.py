@@ -73,6 +73,21 @@ def template_details(request, slug):
     return HttpResponse(template.render(context, request))
 
 
+def adhoc_twit(request, slug, text):
+        try:
+            t = Template.objects.get(slug=slug)
+        except Template.DoesNotExist:
+            raise Http404("Template with slug '%s' does not exist" % slug)
+
+        return_i = t.make_twit(text)
+        response = HttpResponse(content_type="image/png")
+        return_i.save(response, "PNG")
+        return response
+
+#       return HttpResponse(return_i.make_blob(),
+#                           content_type=return_i.mimetype)
+
+
 def adhoc_meme(request, slug, top, bottom):
         try:
             t = Template.objects.get(slug=slug)

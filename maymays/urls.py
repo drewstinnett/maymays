@@ -22,10 +22,20 @@ from graphene_django.views import GraphQLView
 from memes import views
 
 urlpatterns = [
+    # Just plain home
+    path(r'', views.templates, name='home'),
+
+    # Get that admin sun
     path('admin/', admin.site.urls),
+
+    # Mmm, delicious API
     url(r'^graphql', GraphQLView.as_view(graphiql=True)),
+
+    # Ad-hocs
     path(r'adhoc_meme/<str:slug>/<top>/<bottom>/',
          views.adhoc_meme),
+    path(r'adhoc_twit/<str:slug>/<text>', views.adhoc_twit),
+
     path(r'templates/', views.templates, name='templates'),
     path(r'memes/', views.memes, name='memes'),
     path(r'meme/<str:slug>', views.meme_details, name='meme_detail'),
