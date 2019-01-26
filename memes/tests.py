@@ -1,19 +1,9 @@
 from django.test import TestCase, Client
 from memes.models import Template, OGMeme
-from memes.seed.factories import TemplateFactory
+from memes.seed.factories import TemplateFactory, OGMemeFactory
 from memes.helpers import import_memes
 from memes.forms import OGMemeForm
-from django.core.files.base import ContentFile
-from io import BytesIO
 import json
-from PIL import Image
-
-
-def generate_image(width=500, height=500):
-    size = (width, height)
-    color = (255, 0, 0)
-    i = Image.new("RGB", size, color)
-    return i
 
 
 class OGMemeFormTestCase(TestCase):
@@ -23,13 +13,6 @@ class OGMemeFormTestCase(TestCase):
         self.c = Client()
 
         self.meme_template = TemplateFactory()
-        fake_image = generate_image()
-        i_buffer = BytesIO()
-
-        fake_image.save(fp=i_buffer, format='JPEG')
-
-        self.meme_template.image.save(
-            'test.png', ContentFile(i_buffer.getvalue()))
 
     def test_add_meme(self):
         meme_count = OGMeme.objects.count()
@@ -56,18 +39,23 @@ class OGMemeFormTestCase(TestCase):
         self.assertTrue(form.is_valid())
 
 
+class ViewMemesTestCase(TestCase):
+
+    def setUp(self):
+        self.c = Client()
+        self.meme_template = TemplateFactory()
+        self.ogmeme = OGMemeFactory()
+
+    def test_meme_listing(self):
+        response = self.c.get('/memes/')
+        self.assertEqual(response.status_code, 200)
+
+
 class ViewTemplatesTestCase(TestCase):
 
     def setUp(self):
         self.c = Client()
         self.meme_template = TemplateFactory()
-        fake_image = generate_image()
-        i_buffer = BytesIO()
-
-        fake_image.save(fp=i_buffer, format='JPEG')
-
-        self.meme_template.image.save(
-            'test.png', ContentFile(i_buffer.getvalue()))
 
     def test_template_listing(self):
         response = self.c.get('/templates/')
@@ -94,14 +82,6 @@ class AdHocTestCase(TestCase):
 
     def setUp(self):
         self.meme_template = TemplateFactory()
-
-        fake_image = generate_image()
-        i_buffer = BytesIO()
-
-        fake_image.save(fp=i_buffer, format='JPEG')
-
-        self.meme_template.image.save(
-            'test.png', ContentFile(i_buffer.getvalue()))
         self.c = Client()
 
     def test_success_create(self):

@@ -19,6 +19,33 @@ def templates(request):
     return HttpResponse(template.render(context, request))
 
 
+def memes(request):
+    all_items = OGMeme.objects.all()
+    paginator = Paginator(all_items, 24)
+    page = request.GET.get('page')
+    paginated_items = paginator.get_page(page)
+    template = loader.get_template('memes/memes.html')
+
+    context = {
+        'memes': paginated_items
+    }
+    return HttpResponse(template.render(context, request))
+
+
+def meme_details(request, slug):
+    item = OGMeme.objects.get(slug=slug)
+    recent_items = OGMeme.objects.filter(
+        template__slug=item.template.slug
+    ).order_by('-modified_date')[0:10]
+    template = loader.get_template('memes/details.html')
+
+    context = {
+        'meme': item,
+        'recent_memes': recent_items
+    }
+    return HttpResponse(template.render(context, request))
+
+
 def template_details(request, slug):
     meme_template = Template.objects.get(slug=slug)
     template = loader.get_template('templates/details.html')

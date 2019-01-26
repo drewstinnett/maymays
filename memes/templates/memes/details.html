@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="container" >
+
+  <h3>{{ meme.template.name }}</h3>
+  <div class="row">
+      <div class="col-10">
+          <img id='main_meme' data-slug="{{ meme.slug }}" class="img-fluid" src="{{ meme.image.url }}"/>
+       </div>
+  </div>
+  <hr/>
+  <div class="container" >
+    <div class="d-flex flex-wrap">
+
+    {% for meme in recent_memes %}
+      {% include "memes/_card.html" %}
+    {% endfor %}
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

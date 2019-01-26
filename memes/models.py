@@ -1,11 +1,13 @@
 from django.db import models
 from django.contrib import admin
+from django.urls import reverse
 import mimetypes
 import requests
 from django.core.files.base import ContentFile, File
 from django.template.defaultfilters import slugify
 from django.core.exceptions import ValidationError
 from io import BytesIO
+from uuid import uuid4
 
 # Needed for Meme gen
 from textwrap import wrap
@@ -21,14 +23,19 @@ class OGMeme(models.Model):
     bottom = models.CharField('Bottom Text', max_length=255, blank=True)
     template = models.ForeignKey('Template', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='ogmeme', blank=False, null=False)
+    slug = models.SlugField()
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
+
+    def get_absolute_url(self):
+        return reverse('meme_detail', args=[str(self.slug)])
 
     def __str__(self):  # pragma: no cover
         return "%s %s|%s" % (self.template.slug, self.top, self.bottom)
 
     def save(self, *args, **kwargs):
         i_blob = self.template.make_og_meme(self.top, self.bottom).make_blob()
+        self.slug = "%s-%s" % (self.template.slug, uuid4())
         with BytesIO(i_blob) as stream:
             django_file = File(stream)
             self.image.save('%s.png' % self.template.slug, django_file,
@@ -48,6 +55,7 @@ class OGMeme(models.Model):
 
     class Meta:
         unique_together = ['top', 'bottom', 'template']
+        ordering = ['-modified_date']
 
 
 class Template(models.Model):
@@ -74,6 +82,10 @@ class Template(models.Model):
         content_type = r.headers['content-type']
         ext = mimetypes.guess_extension(content_type)
         self.image.save('%s%s' % (self.slug, ext), ContentFile(r.content))
+
+    def get_absolute_url(self):
+        return reverse('template_detail', args=[str(self.slug)])
+        # return "/template/%s" % self.slug
 
     def make_og_meme(self, top, bottom):
         """Generate an OG Meme
@@ -142,4 +154,9 @@ class TemplateAdmin(admin.ModelAdmin):
     pass
 
 
+class OGMemeAdmin(admin.ModelAdmin):
+    pass
+
+
 admin.site.register(Template, TemplateAdmin)
+admin.site.register(OGMeme, OGMemeAdmin)

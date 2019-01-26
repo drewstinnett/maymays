@@ -27,6 +27,8 @@ urlpatterns = [
     path(r'adhoc_meme/<str:slug>/<top>/<bottom>/',
          views.adhoc_meme),
     path(r'templates/', views.templates, name='templates'),
+    path(r'memes/', views.memes, name='memes'),
+    path(r'meme/<str:slug>', views.meme_details, name='meme_detail'),
     path(r'template/<str:slug>', views.template_details,
          name='template_detail')
 

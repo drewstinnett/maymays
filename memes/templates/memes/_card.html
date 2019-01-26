@@ -1,0 +1,10 @@
+{% load thumbnail %}
+<div class="col-md-4">
+  <div class="card mb-4 shadow-sm" style="width: 18rem;">
+    {% thumbnail meme.image "200x200" crop="center" as im %}
+      <a href="{{ meme.get_absolute_url }}">
+        <img class="card-img-top" src="{{ im.url }}" alt="Card image cap" width="{{ im.width }}" height="{{ im.height }}">
+      </a>
+    {% endthumbnail %}
+  </div>
+</div>

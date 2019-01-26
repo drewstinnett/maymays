@@ -14,20 +14,12 @@
            {% include "create_og.html" with form=og_form %}
        </div>
   </div>
+  <hr/>
   <div class="container" >
     <div class="d-flex flex-wrap">
 
     {% for meme in recent_memes %}
-    <div class="col-md-4">
-    {{ meme }}
-    <div class="card mb-4 shadow-sm" style="width: 18rem;">
-      {% thumbnail meme.image "200x200" crop="center" as im %}
-      <a href="/template/{{ meme.id }}">
-        <img class="card-img-top" src="{{ im.url }}" alt="Card image cap" width="{{ im.width }}" height="{{ im.height }}">
-      </a>
-      {% endthumbnail %}
-    </div>
-    </div>
+        {% include "memes/_card.html" %}
     {% endfor %}
 
     </div>

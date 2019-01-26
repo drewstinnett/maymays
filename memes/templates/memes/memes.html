@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load bootstrap_pagination %}
+
+
+{% block content %}
+<div class="container" >
+
+    <div class="d-flex flex-wrap">
+    {% for meme in memes %}
+        {% include "memes/_card.html" %}
+    {% endfor %}
+    </div>
+    {% bootstrap_paginate memes %}
+</div>
+{% endblock %}
