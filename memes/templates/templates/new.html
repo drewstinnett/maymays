@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load thumbnail %}
+
+
+{% block content %}
+<div class="container" >
+
+  <h3>{{ template.name }}</h3>
+  <div class="row">
+      <div class="col-7">
+          <img id='main_template' data-slug="{{ template.slug }}" class="img-fluid" src="{{ template.image.url }}"/>
+       </div>
+
+       <div class="container col-4">
+           <h3>New Template</h3>
+           {% include "templates/create_template.html" with form=template_form %}
+       </div>
+
+{% endblock %}

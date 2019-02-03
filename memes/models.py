@@ -201,8 +201,8 @@ class Template(models.Model):
     def get_warp_length(self, width, max_width=1024, padding=33):
         return int((float(padding) / float(max_width)) * (width + 0.0))
 
-#   class Meta:
-        # ordering = ['name']
+    class Meta:
+        ordering = ['-created_date']
 
     def __str__(self):  # pragma: no cover
         return self.name

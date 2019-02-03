@@ -1,12 +1,40 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
+from django.urls import reverse
 from django.core.paginator import Paginator
 from django.template import loader
 from memes.models import Template, Meme
-from memes.forms import OGMemeForm, TwitMemeForm
+from memes.forms import OGMemeForm, TwitMemeForm, TemplateForm
 import logging
 import json
 
 from django.http import Http404
+
+
+def templates_new(request):
+    if request.POST:
+        template_form = TemplateForm(request.POST, request.FILES)
+        if template_form.is_valid():
+            t = Template()
+
+            print(request.POST)
+            if request.POST['url']:
+                t.import_image_from_url(request.POST['url'])
+            else:
+                t.image = request.FILES['image']
+
+            t.name = request.POST['name']
+            t.save()
+            return HttpResponseRedirect(reverse(
+                'template_detail', args=([str(t.slug)])))
+
+    else:
+        template_form = TemplateForm()
+
+    context = {
+        'template_form': template_form
+    }
+    template = loader.get_template('templates/new.html')
+    return HttpResponse(template.render(context, request))
 
 
 def templates(request):

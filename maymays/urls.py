@@ -37,6 +37,7 @@ urlpatterns = [
     path(r'adhoc_twit/<str:slug>/<text>', views.adhoc_twit),
 
     path(r'templates/', views.templates, name='templates'),
+    path(r'templates/new', views.templates_new, name='templates'),
     path(r'memes/', views.memes, name='memes'),
     path(r'meme/<str:slug>', views.meme_details, name='meme_detail'),
     path(r'template/<str:slug>', views.template_details,

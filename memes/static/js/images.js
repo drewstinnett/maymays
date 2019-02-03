@@ -3,7 +3,7 @@ function ogMemeLive() {
   var bottom = $('#id_bottom').val() || ' ';
   var slug = $('#main_template').attr('data-slug');
   $('#main_template').attr('src',
-     '/adhoc_meme/' + slug + '/' + top + '/' + bottom + '/'); 
+     '/adhoc_meme/' + slug + '/' + encodeURIComponent(top) + '/' + encodeURIComponent(bottom) + '/'); 
 }
 
 function twitMemeLive() {
