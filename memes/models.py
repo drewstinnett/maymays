@@ -3,60 +3,72 @@ from django.contrib import admin
 from django.urls import reverse
 import mimetypes
 import requests
+import sys
+import json
 from django.core.files.base import ContentFile, File
 from django.template.defaultfilters import slugify
-from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from io import BytesIO
 from uuid import uuid4
 
 # Needed for Meme gen
 from PIL import Image as PILImage, ImageDraw, ImageFont
-from textwrap import wrap
+from textwrap import TextWrapper, wrap
 from wand.drawing import Drawing
 from wand.image import Image
 from wand.color import Color
 
 
-class OGMeme(models.Model):
-    """Original Gangsta' style meme.  Traditional top/bottom text on an image
+class Meme(models.Model):
+    """Generic Meme object
     """
-    top = models.CharField('Top Text', max_length=255, blank=True)
-    bottom = models.CharField('Bottom Text', max_length=255, blank=True)
-    template = models.ForeignKey('Template', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='ogmeme', blank=False, null=False)
     slug = models.SlugField()
+    data = models.TextField('Data')
+    template = models.ForeignKey('Template', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='meme_images', blank=False, null=False)
+
+    FLAVOR_CHOICES = (
+        ('og', 'Original Meme'),
+        ('twit', 'Twit Meme')
+    )
+    flavor = models.CharField('Flavor', max_length=10, choices=FLAVOR_CHOICES,
+                              default='og')
+
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
 
     def get_absolute_url(self):
         return reverse('meme_detail', args=[str(self.slug)])
 
-    def __str__(self):  # pragma: no cover
-        return "%s %s|%s" % (self.template.slug, self.top, self.bottom)
-
     def save(self, *args, **kwargs):
-        i_blob = self.template.make_og_meme(self.top, self.bottom).make_blob()
         self.slug = "%s-%s" % (self.template.slug, uuid4())
-        with BytesIO(i_blob) as stream:
-            django_file = File(stream)
-            self.image.save('%s.png' % self.template.slug, django_file,
-                            save=False)
+        data = json.loads(self.data)
+        if self.flavor == 'og':
+            i_blob = self.template.make_og_meme(
+                data['top'], data['bottom']).make_blob()
+            with BytesIO(i_blob) as stream:
+                django_file = File(stream)
+                self.image.save('%s.png' % self.template.slug, django_file,
+                                save=False)
+        elif self.flavor == 'twit':
+            i = self.template.make_twit(data['text'])
 
-        super(OGMeme, self).save(*args, **kwargs)
+            output = BytesIO()
+            i.save(output, format='PNG', quality=100)
+            output.seek(0)
+            self.image = InMemoryUploadedFile(
+                output,
+                'ImageField',
+                "%s.jpg" % self.image.name.split('.')[0],
+                'image/png',
+                sys.getsizeof(output),
+                None
+            )
 
-    def import_image_from_url(self, url):
-        r = requests.get(url)
-        content_type = r.headers['content-type']
-        ext = mimetypes.guess_extension(content_type)
-        self.image.save('%s%s' % (self.slug, ext), ContentFile(r.content))
+        super(Meme, self).save(*args, **kwargs)
 
-    def clean(self):
-        if not self.top and not self.bottom:
-            raise ValidationError('At least top or bottom text is required')
-
-    class Meta:
-        unique_together = ['top', 'bottom', 'template']
-        ordering = ['-modified_date']
+    def __str__(self):
+        return self.slug
 
 
 class Template(models.Model):
@@ -101,7 +113,14 @@ class Template(models.Model):
         ascent, descent = fnt.getmetrics()
         (width, baseline), (offset_x, offset_y) = fnt.font.getsize(text)
         font_height = offset_y + (ascent - offset_y) + descent
-        text_pieces = wrap(text, self.image.width / 12)
+        # text_pieces = wrap(text, self.image.width / 12)
+        wrapper = TextWrapper(
+            width=self.image.width / 12,
+            break_long_words=False,
+            replace_whitespace=False)
+        text_pieces = []
+        for item in text.split("\n"):
+            text_pieces.extend(wrapper.wrap(item))
 
         # Create image for the caption
         caption_height = (font_height * len(text_pieces)) + 10
@@ -182,8 +201,8 @@ class Template(models.Model):
     def get_warp_length(self, width, max_width=1024, padding=33):
         return int((float(padding) / float(max_width)) * (width + 0.0))
 
-    class Meta:
-        ordering = ['name']
+#   class Meta:
+        # ordering = ['name']
 
     def __str__(self):  # pragma: no cover
         return self.name
@@ -193,9 +212,12 @@ class TemplateAdmin(admin.ModelAdmin):
     pass
 
 
-class OGMemeAdmin(admin.ModelAdmin):
+class MemeAdmin(admin.ModelAdmin):
     pass
 
 
 admin.site.register(Template, TemplateAdmin)
-admin.site.register(OGMeme, OGMemeAdmin)
+admin.site.register(Meme, MemeAdmin)
+
+# post_save.connect(create_meme, sender=TwitMeme)
+# post_save.connect(create_meme, sender=OGMeme)

@@ -1,26 +1,18 @@
 from django.test import TestCase, Client
-from memes.models import Template, OGMeme
-from memes.seed.factories import TemplateFactory, OGMemeFactory
+from memes.models import Template, Meme
+from memes.seed.factories import TemplateFactory, MemeFactory
 from memes.helpers import import_memes
-from memes.forms import OGMemeForm
+from memes.forms import OGMemeForm, TwitMemeForm
 import json
 
 
 class OGMemeFormTestCase(TestCase):
 
     def setUp(self):
-        self.full_data = {'top': 'hi top', 'bottom': 'hi bottom'}
+        self.full_data = {'top': 'hi top', 'bottom': 'hi bottom',
+                          'flavor': 'og'}
         self.c = Client()
-
         self.meme_template = TemplateFactory()
-
-    def test_add_meme(self):
-        meme_count = OGMeme.objects.count()
-        response = self.c.post('/template/%s' % self.meme_template.slug,
-                               self.full_data)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(OGMeme.objects.count(), meme_count+1)
-#       self.assertTrue(b'"error": false' in response.content)
 
     def test_valid_meme(self):
         form = OGMemeForm(data=self.full_data)
@@ -39,15 +31,41 @@ class OGMemeFormTestCase(TestCase):
         self.assertTrue(form.is_valid())
 
 
+class TwitMemeFormTestCase(TestCase):
+    def setUp(self):
+        self.full_data = {'text': 'Here is some garbage', 'flavor': 'twit'}
+        self.c = Client()
+        self.meme_template = TemplateFactory()
+
+    def test_add_meme(self):
+        meme_count = Meme.objects.count()
+        response = self.c.post('/template/%s' % self.meme_template.slug,
+                               self.full_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Meme.objects.count(), meme_count+1)
+
+    def test_valid_meme(self):
+        form = TwitMemeForm(data=self.full_data)
+        self.assertTrue(form.is_valid())
+
+    def test_invalid_meme(self):
+        form = OGMemeForm(data={'text': None, 'meme-type': 'twit'})
+        self.assertFalse(form.is_valid())
+
+
 class ViewMemesTestCase(TestCase):
 
     def setUp(self):
         self.c = Client()
         self.meme_template = TemplateFactory()
-        self.ogmeme = OGMemeFactory()
+        self.ogmeme = MemeFactory()
 
     def test_meme_listing(self):
         response = self.c.get('/memes/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_meme_details(self):
+        response = self.c.get('/meme/%s' % self.ogmeme.slug)
         self.assertEqual(response.status_code, 200)
 
 

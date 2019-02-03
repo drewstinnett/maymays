@@ -1,8 +1,11 @@
 from django.http import HttpResponse
 from django.core.paginator import Paginator
 from django.template import loader
-from memes.models import Template, OGMeme
-from memes.forms import OGMemeForm
+from memes.models import Template, Meme
+from memes.forms import OGMemeForm, TwitMemeForm
+import logging
+import json
+
 from django.http import Http404
 
 
@@ -20,7 +23,7 @@ def templates(request):
 
 
 def memes(request):
-    all_items = OGMeme.objects.all()
+    all_items = Meme.objects.all()
     paginator = Paginator(all_items, 24)
     page = request.GET.get('page')
     paginated_items = paginator.get_page(page)
@@ -33,15 +36,15 @@ def memes(request):
 
 
 def meme_details(request, slug):
-    item = OGMeme.objects.get(slug=slug)
-    recent_items = OGMeme.objects.filter(
+    item = Meme.objects.get(slug=slug)
+    recent_memes = Meme.objects.filter(
         template__slug=item.template.slug
     ).order_by('-modified_date')[0:10]
     template = loader.get_template('memes/details.html')
 
     context = {
         'meme': item,
-        'recent_memes': recent_items
+        'recent_memes': recent_memes,
     }
     return HttpResponse(template.render(context, request))
 
@@ -50,23 +53,71 @@ def template_details(request, slug):
     meme_template = Template.objects.get(slug=slug)
     template = loader.get_template('templates/details.html')
 
-    recent_memes = OGMeme.objects.filter(
-        template__slug=slug).order_by('-modified_date')[0:10]
+    recent_memes = Meme.objects.filter(template__slug=slug)[0:10]
 
-    if request.method == 'POST':
-        og_form = OGMemeForm(request.POST)
-        if og_form.is_valid():
-            meme_template = Template.objects.get(slug=slug)
-            og_meme = og_form.save(commit=False)
-            og_meme.top = request.POST['top']
-            og_meme.bottom = request.POST['bottom']
-            og_meme.template = meme_template
-            og_meme.save()
-    else:
-        og_form = OGMemeForm()
+    if (request.method == 'POST') and ('flavor' not in request.POST):
+        logging.error("Missing flavor from meme post")
+        return HttpResponse("Missing meme flavor", status=500)
 
+    if (request.method == 'POST') and ('flavor' in request.POST):
+        if request.POST['flavor'] == 'og':
+            og_form = OGMemeForm(request.POST)
+            if og_form.is_valid():
+                meme_template = Template.objects.get(slug=slug)
+
+                data = {
+                    'top': request.POST['top'],
+                    'bottom': request.POST['bottom'],
+                }
+                m = Meme(
+                    data=json.dumps(data),
+                    template=meme_template,
+                    flavor='og'
+                )
+                m.save()
+        elif request.POST['flavor'] == 'twit':
+            twit_form = TwitMemeForm(request.POST)
+            if twit_form.is_valid():
+                meme_template = Template.objects.get(slug=slug)
+
+                data = {
+                    'text': request.POST['text'],
+                }
+                m = Meme(
+                    data=json.dumps(data),
+                    template=meme_template,
+                    flavor='twit'
+                )
+                m.save()
+
+#   if (request.method == 'POST') and (request.POST['meme-type'] == 'og'):
+#           og_form = OGMemeForm(request.POST)
+#           if og_form.is_valid():
+#               meme_template = Template.objects.get(slug=slug)
+#               og_meme = og_form.save(commit=False)
+#               og_meme.top = request.POST['top']
+#               og_meme.bottom = request.POST['bottom']
+#               og_meme.template = meme_template
+#               og_meme.save()
+#   else:
+#       og_form = OGMemeForm()
+
+#   if (request.method == 'POST') and (request.POST['meme-type'] == 'twit'):
+#           twit_form = TwitMemeForm(request.POST)
+#           if twit_form.is_valid():
+#               meme_template = Template.objects.get(slug=slug)
+#               twit_meme = twit_form.save(commit=False)
+#               twit_meme.text = request.POST['text']
+#               twit_meme.template = meme_template
+#               twit_meme.save()
+#   else:
+#       twit_form = TwitMemeForm()
+
+    og_form = OGMemeForm()
+    twit_form = TwitMemeForm()
     context = {
         'og_form': og_form,
+        'twit_form': twit_form,
         'recent_memes': recent_memes,
         'template': meme_template
     }

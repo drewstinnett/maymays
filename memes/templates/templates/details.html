@@ -10,10 +10,29 @@
       <div class="col-7">
           <img id='main_template' data-slug="{{ template.slug }}" class="img-fluid" src="{{ template.image.url }}"/>
        </div>
-       <div class="col-3">
-           {% include "create_og.html" with form=og_form %}
-       </div>
+
+<div class="container col-4">
+
+  <ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="tab" href="#ogmeme">OGMeme</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="tab" href="#twit">Twit</a>
+    </li>
+  </ul>
+
+  <div class="tab-content">
+    <div class="tab-pane container active" id="ogmeme" role="tab-panel">
+       {% include "create_og.html" with form=og_form %}
+    </div>
+    <div class="tab-pane container fade" id="twit" role="tab-panel">
+       {% include "create_twit.html" with form=twit_form %}
+    </div>
   </div>
+
+</div>
+</div>
   <hr/>
   <div class="container" >
     <div class="d-flex flex-wrap">
